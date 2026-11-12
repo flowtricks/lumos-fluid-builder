@@ -1,0 +1,967 @@
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--stacki-bg-panel);
+  color: var(--stacki-text);
+  font-family: var(--stacki-font);
+  font-size: var(--stacki-font-size);
+  line-height: 1.45;
+}
+
+:root {
+  --fb-order: #fb923c;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stacki-space-3);
+  padding: var(--stacki-space-4);
+}
+
+/* The controls at the top: no divider under them, an even margin around, and no gap left for the hint
+   line when there is none to show. */
+.controls {
+  gap: 0;
+  padding: var(--stacki-space-4) var(--stacki-space-4) var(--stacki-space-3);
+}
+
+#selected:empty {
+  display: none;
+}
+
+#selected:not(:empty) {
+  margin-bottom: var(--stacki-space-3);
+}
+
+h2 {
+  margin: 0;
+  font-size: var(--stacki-font-size);
+  font-weight: var(--stacki-font-weight-strong);
+}
+
+.hint {
+  margin: 0;
+  color: var(--stacki-text-faint);
+}
+
+.mono {
+  font-family: var(--stacki-font-mono);
+  font-size: var(--stacki-font-size-tiny);
+  overflow-wrap: anywhere;
+}
+
+.target {
+  display: flex;
+  align-items: center;
+  gap: var(--stacki-space-3);
+  min-width: 0;
+}
+
+.target code {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--stacki-text-muted);
+  font-family: var(--stacki-font-mono);
+  font-size: var(--stacki-font-size-small);
+}
+
+.chip {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: var(--stacki-radius-option);
+  background: var(--stacki-accent-soft);
+  color: var(--stacki-accent-text);
+  font-weight: var(--stacki-font-weight-strong);
+}
+
+#editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stacki-space-2);
+}
+
+#editor[hidden] {
+  display: none;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--stacki-space-3);
+}
+
+.scale {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* The rows share their columns: the label and the numbers as wide as the widest of each (so a long
+     label never runs into the bar), the bar taking the rest, and a fixed slot for the row's one icon at the
+     right, always reserved, so nothing moves when an icon appears or goes. */
+  display: grid;
+  grid-template-columns: max-content 1fr max-content 14px;
+  column-gap: 0; /* spacing is on the cells */
+  row-gap: 2px;
+}
+
+.scale li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  padding: 3px var(--stacki-space-2);
+  border-radius: var(--stacki-radius-option);
+  color: var(--stacki-text-muted);
+}
+
+.scale li {
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.scale li:not(.on):hover {
+  background: color-mix(in srgb, var(--stacki-text) 5%, transparent);
+}
+
+.scale li.on {
+  background: var(--stacki-bg-active);
+  color: var(--stacki-text);
+}
+
+.scale .bar {
+  position: relative;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--stacki-bg-input);
+}
+
+.scale .bar i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 99px;
+  background: var(--stacki-text-faint);
+}
+
+.scale li.on .bar i {
+  background: var(--stacki-accent);
+}
+
+.scale .v {
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  margin: var(--stacki-space-4);
+  color: var(--stacki-text-muted);
+}
+
+.status[data-tone='error'] {
+  color: var(--stacki-danger);
+}
+
+.status[data-tone='saved'] {
+  color: var(--stacki-success);
+}
+
+/* Accessibility check, as in Stacki's variables panel. */
+.flag {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--stacki-danger, #f87171);
+  outline: none;
+}
+
+.flag[data-status='warning'] {
+  color: var(--stacki-warning, #fbbf24);
+}
+
+.flag svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+/* The explanation: a white card under the icon on hover or focus, right-aligned so it opens inward.
+   The card starts flush with the icon (its top padding is the gap), so the pointer can cross into it
+   to reach "Read why" without the card closing. */
+.flag .tip {
+  position: absolute;
+  top: 100%;
+  right: -6px;
+  z-index: 20;
+  display: none;
+  width: 232px;
+  padding-top: 8px;
+  color: #18181b;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+}
+
+.flag .tip::before {
+  content: '';
+  position: absolute;
+  inset: 8px 0 0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.flag .tip::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 11px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+.flag .tip > * {
+  position: relative;
+}
+
+.flag:hover .tip,
+.flag:focus-within .tip {
+  display: block;
+}
+
+.flag .tip-text {
+  display: block;
+  padding: 10px 12px;
+}
+
+.flag .tip a {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.target #flag-slot {
+  display: flex;
+  flex: none;
+  margin-left: auto;
+}
+
+/* The controls: the card (hud.html) in a frame of its own, as wide as the panel and 150px tall. */
+.card-frame {
+  display: block;
+  width: 100%;
+  height: 160px;
+  border: 0;
+  background: transparent;
+}
+
+/* The flags of a row, side by side at its right edge. */
+.scale .flags {
+  display: flex;
+  justify-content: center;
+}
+
+/* The gap between the numbers and the icon is the numbers', so the icon's slot keeps its full width. */
+.scale .v {
+  margin-right: 14px;
+}
+
+/* The space between the cells is theirs, so an empty flag column takes none. */
+.scale .n {
+  margin-right: 16px;
+}
+
+.scale .bar {
+  margin-right: 16px;
+}
+
+
+
+/* A level that is not larger than the one below it: a warning icon, an orange bar, and the number at
+   fault in orange. The row's own background is left to the hover and active states. */
+.flag[data-status='order'] {
+  color: var(--fb-order);
+}
+
+/* Only the number at fault is orange: the minimum, the maximum, or both. */
+.scale .v .bad {
+  color: var(--fb-order);
+}
+
+.scale li.order .bar i {
+  background: var(--fb-order);
+}
+
+/* A tooltip that lists more than one issue: one line each, the worst first. */
+.flag .tip-line {
+  display: block;
+}
+
+.flag .tip-line + .tip-line {
+  margin-top: 6px;
+}
+
+/* The type scale fields: a ratio for the minimum sizes and one for the maximum, each the scale its sizes
+   follow, or empty when they follow none. */
+.scale-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--stacki-space-3);
+}
+
+.scale-section[hidden] {
+  display: none;
+}
+
+.scale-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.scale-label {
+  color: var(--stacki-text-muted);
+  font-size: var(--stacki-font-size-small);
+}
+
+.scale-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  border-radius: var(--stacki-radius-option);
+  background: var(--stacki-bg-input);
+}
+
+.scale-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 4px 0 10px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--stacki-text);
+  font-family: var(--stacki-font-mono);
+  font-size: var(--stacki-font-size);
+  outline: none;
+}
+
+.scale-input::placeholder {
+  color: var(--stacki-text-faint);
+  opacity: 1;
+}
+
+.scale-input:disabled {
+  opacity: 0.5;
+}
+
+.scale-menu {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--stacki-text-faint);
+  cursor: pointer;
+}
+
+.scale-menu {
+  outline: none;
+}
+
+.scale-menu:hover,
+.scale-menu:focus-visible {
+  color: var(--stacki-text-muted);
+}
+
+.scale-menu svg {
+  display: block;
+  width: 9px;
+  height: 6px;
+}
+
+/* The list of named scales, opening upward: compact, one line each, the one the sizes follow ticked. */
+.scale-list {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: max-content;
+  min-width: 100%;
+  max-height: min(330px, 70vh);
+  margin: 0;
+  padding: 3px;
+  overflow-y: auto;
+  list-style: none;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--stacki-bg-panel) 94%, var(--stacki-text));
+  box-shadow: 0 0 0 1px var(--stacki-line), 0 10px 28px rgba(0, 0, 0, 0.5);
+  scrollbar-width: thin;
+}
+
+/* The Max menu hangs from the right edge, so it stays inside the panel. */
+.scale-field[data-side='max'] .scale-list {
+  left: auto;
+  right: 0;
+}
+
+.scale-list[hidden] {
+  display: none;
+}
+
+.scale-list li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px auto;
+  align-items: baseline;
+  column-gap: 10px;
+  padding: 3px 24px 3px 10px;
+  border-radius: 5px;
+  color: var(--stacki-text);
+  font-size: var(--stacki-font-size-small);
+  line-height: 1.35;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.scale-list li:hover {
+  background: color-mix(in srgb, var(--stacki-text) 9%, transparent);
+}
+
+.scale-list li[aria-selected='true'] {
+  background: color-mix(in srgb, var(--stacki-text) 6%, transparent);
+}
+
+.scale-list li[aria-selected='true']::before {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 3px;
+  height: 7px;
+  margin-top: -5px;
+  border: solid var(--stacki-accent-text, currentColor);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.scale-list .scale-ratio {
+  font-family: var(--stacki-font-mono);
+}
+
+.scale-list .scale-title {
+  color: var(--stacki-text-faint);
+}
+
+.scale-list li[data-custom] {
+  grid-template-columns: auto;
+  margin-top: 2px;
+  border-top: 1px solid var(--stacki-line);
+  border-radius: 0 0 5px 5px;
+  padding-top: 5px;
+}
+
+/* The lock beside a scale: on, the smallest size sets the others through the ratio; off, every size is free. */
+.scale-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 18px;
+}
+
+.scale-lock {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--stacki-text-muted);
+  cursor: pointer;
+  outline: none;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.scale-lock[hidden] {
+  display: none;
+}
+
+.scale-lock svg {
+  display: block;
+  width: 11px;
+  height: 13px;
+}
+
+.scale-lock .lock-open {
+  display: none;
+}
+
+.scale-lock[aria-pressed='false'] .lock-closed {
+  display: none;
+}
+
+.scale-lock[aria-pressed='false'] .lock-open {
+  display: block;
+}
+
+.scale-lock[aria-pressed='false'] {
+  color: var(--stacki-text-faint);
+}
+
+.scale-lock:hover {
+  background: color-mix(in srgb, var(--stacki-text) 9%, transparent);
+}
+
+/* Locked: the accent blue itself, on a soft blue background, so it reads as on. */
+.scale-lock[aria-pressed='true'] {
+  color: var(--stacki-accent, #3b82f6);
+  background: var(--stacki-accent-soft, rgba(59, 130, 246, 0.2));
+}
+
+.scale-lock[aria-pressed='true']:hover {
+  background: color-mix(in srgb, var(--stacki-accent-soft, rgba(59, 130, 246, 0.2)) 80%, var(--stacki-accent, #3b82f6));
+}
+
+/* None sits first, set apart from the scales. */
+.scale-list li[data-none] {
+  grid-template-columns: auto;
+  margin-bottom: 2px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--stacki-line);
+  border-radius: 5px 5px 0 0;
+}
+
+/* The list's heading is a menu: the type scale, or the spacing scale. */
+.mode-head {
+  position: relative;
+  align-self: flex-start;
+}
+
+.mode-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--stacki-text);
+  font: inherit;
+  font-weight: var(--stacki-font-weight-strong);
+  cursor: pointer;
+  outline: none;
+}
+
+/* No background on hover, press or focus, whatever the kit gives a button. */
+.mode-menu:hover,
+.mode-menu:focus,
+.mode-menu:focus-visible,
+.mode-menu:active {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
+.mode-menu svg {
+  display: block;
+  width: 9px;
+  height: 6px;
+  color: var(--stacki-text-faint);
+  transition: color 160ms ease;
+}
+
+.mode-menu:hover svg {
+  color: var(--stacki-text-muted);
+}
+
+.mode-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -6px;
+  z-index: 40;
+  min-width: 150px;
+  margin: 0;
+  padding: 3px;
+  list-style: none;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--stacki-bg-panel) 94%, var(--stacki-text));
+  box-shadow: 0 0 0 1px var(--stacki-line), 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+.mode-list[hidden] {
+  display: none;
+}
+
+.mode-list li {
+  position: relative;
+  padding: 4px 24px 4px 10px;
+  border-radius: 5px;
+  color: var(--stacki-text);
+  font-size: var(--stacki-font-size-small);
+  font-weight: 400;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mode-list li:hover {
+  background: color-mix(in srgb, var(--stacki-text) 9%, transparent);
+}
+
+.mode-list li[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 3px;
+  height: 7px;
+  margin-top: -5px;
+  border: solid var(--stacki-accent-text, currentColor);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+/* ── Settings ─────────────────────────────────────────────────────────── */
+
+.list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0 -4px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--stacki-text-faint);
+  cursor: pointer;
+  outline: none;
+}
+.icon-btn svg {
+  width: 14px;
+  height: 14px;
+}
+.icon-btn:hover,
+.icon-btn:focus-visible,
+.icon-btn[aria-expanded='true'] {
+  color: var(--stacki-text);
+  background: color-mix(in srgb, var(--stacki-text) 9%, transparent);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: var(--stacki-space-3);
+  background: rgba(0, 0, 0, 0.45);
+}
+.modal[hidden] {
+  display: none;
+}
+.modal-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  border-radius: 12px;
+  background: var(--stacki-bg-panel);
+  box-shadow: 0 0 0 1px var(--stacki-line), 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--stacki-space-3) var(--stacki-space-4);
+}
+.modal-head h2 {
+  margin: 0;
+  font-size: var(--stacki-font-size);
+  font-weight: var(--stacki-font-weight-strong);
+}
+.modal-sub {
+  margin: var(--stacki-space-3) 0 var(--stacki-space-4);
+  color: var(--stacki-text-faint);
+  font-size: var(--stacki-font-size-small);
+}
+.modal-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--stacki-space-4) var(--stacki-space-3);
+}
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--stacki-space-3) var(--stacki-space-4);
+  border-top: 1px solid var(--stacki-line);
+}
+.text-btn,
+.text-btn:hover,
+.text-btn:focus,
+.text-btn:active {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: none;
+  background: transparent;
+  color: var(--stacki-text-faint);
+  font: inherit;
+  font-size: var(--stacki-font-size-small);
+  cursor: pointer;
+  outline: none;
+}
+.text-btn:hover,
+.text-btn:focus-visible {
+  color: var(--stacki-text);
+  background: color-mix(in srgb, var(--stacki-text) 9%, transparent);
+}
+.text-btn.primary,
+.text-btn.primary:hover,
+.text-btn.primary:focus,
+.text-btn.primary:active {
+  color: var(--stacki-text);
+  background: color-mix(in srgb, var(--stacki-text) 12%, transparent);
+}
+.text-btn.primary:hover,
+.text-btn.primary:focus-visible {
+  background: color-mix(in srgb, var(--stacki-text) 18%, transparent);
+}
+
+.cfg-group {
+  padding: 8px 10px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--stacki-bg-panel) 92%, var(--stacki-text));
+  box-shadow: 0 0 0 1px var(--stacki-line);
+}
+.cfg-group + .cfg-group {
+  margin-top: 12px;
+}
+.cfg-title {
+  margin: 0 0 2px;
+  font-size: var(--stacki-font-size);
+  font-weight: var(--stacki-font-weight-strong);
+}
+.cfg-help {
+  margin: 0 0 var(--stacki-space-2);
+  color: var(--stacki-text-faint);
+  font-size: var(--stacki-font-size-small);
+}
+.cfg-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cfg-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 4px 0 0;
+  border-radius: 6px;
+  background: transparent;
+}
+.cfg-row.dragging {
+  opacity: 0.4;
+}
+.cfg-list {
+  position: relative;
+}
+/* Where the dragged row would land: a blue line with a dot at its start, like the navigator's. */
+.cfg-drop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--stacki-accent, #3b82f6);
+  pointer-events: none;
+}
+.cfg-drop::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--stacki-accent, #3b82f6);
+}
+.cfg-row input[type='checkbox'] {
+  flex: none;
+  margin: 0;
+  accent-color: var(--stacki-accent, #3b82f6);
+}
+.cfg-remove {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--stacki-text-faint);
+  cursor: pointer;
+  outline: none;
+}
+.cfg-remove svg {
+  width: 9px;
+  height: 9px;
+}
+.cfg-remove:hover,
+.cfg-remove:focus-visible {
+  color: var(--stacki-text);
+  background: color-mix(in srgb, var(--stacki-text) 12%, transparent);
+}
+.cfg-grip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--stacki-text-faint);
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+.cfg-grip svg {
+  width: 8px;
+  height: 12px;
+}
+.cfg-grip:hover,
+.cfg-grip:focus-visible {
+  color: var(--stacki-text);
+}
+.cfg-row.dragging .cfg-grip {
+  cursor: grabbing;
+}
+.cfg-label {
+  flex: none;
+  min-width: 0;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--stacki-font-size-small);
+}
+.cfg-var {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--stacki-text-faint);
+  font-family: var(--stacki-font-mono);
+  font-size: 11px;
+}
+.cfg-miss {
+  flex: none;
+  color: var(--fb-order);
+  font-size: 11px;
+}
+.cfg-row[data-missing] .cfg-label {
+  color: var(--stacki-text-faint);
+}
+.cfg-empty {
+  padding: 6px 0;
+  color: var(--stacki-text-faint);
+  font-size: var(--stacki-font-size-small);
+}
+
+/* Groups */
+.cfg-intro {
+  margin: 0 0 var(--stacki-space-3);
+}
+.cfg-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 -10px 8px;
+  padding: 0 10px 8px;
+  border-bottom: 1px solid var(--stacki-line);
+}
+.cfg-head .cfg-title {
+  margin: 0;
+}
+.cfg-name {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  margin: 0 0 0 -6px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--stacki-text);
+  font: inherit;
+  font-weight: var(--stacki-font-weight-strong);
+  outline: none;
+}
+.cfg-name:hover,
+.cfg-name:focus {
+  background: var(--stacki-bg-input);
+}
+.cfg-name::placeholder {
+  color: var(--stacki-text-faint);
+  font-weight: 400;
+}
+.cfg-del {
+  margin-right: 4px; /* the same inset as a row's, so the x lines up */
+}
+.cfg-other .cfg-row {
+  padding-left: 0;
+}
+
+/* The group a dragged row would drop into. */
+.cfg-group.drop-target {
+  background: color-mix(in srgb, var(--stacki-accent, #3b82f6) 9%, var(--stacki-bg-panel));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--stacki-accent, #3b82f6) 55%, transparent);
+}
+
+.cfg-group.dragging-group {
+  opacity: 0.4;
+}
+.cfg-ggrip {
+  margin-right: 2px;
+}
+.cfg-ggrip + .cfg-name {
+  margin-left: -4px; /* the name lines up with the rows' labels */
+}

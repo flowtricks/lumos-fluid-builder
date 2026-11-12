@@ -1,0 +1,27 @@
+<svg viewBox="0 0 996 996" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#lfb_clip)">
+<rect width="995.095" height="995.095" fill="#C2F52F"/>
+<g filter="url(#lfb_blur_a)">
+<ellipse cx="1156.54" cy="-78.6636" rx="1011.65" ry="629.855" transform="rotate(17.9536 1156.54 -78.6636)" fill="#D2ADE7"/>
+</g>
+<g filter="url(#lfb_blur_b)">
+<ellipse cx="172.089" cy="960.183" rx="743.067" ry="307.148" transform="rotate(36.6219 172.089 960.183)" fill="#D2C2BC"/>
+</g>
+<path d="M722.612 574.478L570.682 533.762L611.371 685.692L536.302 705.796L495.586 553.92L306.764 742.716L251.799 687.75L440.621 498.928L288.719 458.239L308.822 383.143L460.752 423.859L420.036 271.93L495.132 251.799L535.848 403.728L649.761 289.788L704.726 344.753L590.813 458.693L742.716 499.409L722.612 574.478Z" fill="#353233"/>
+</g>
+<defs>
+<filter id="lfb_blur_a" x="-289.806" y="-1218.65" width="2892.69" height="2279.98" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="232.189" result="effect1_foregroundBlur"/>
+</filter>
+<filter id="lfb_blur_b" x="-752.683" y="152.176" width="1849.54" height="1616.02" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="150.358" result="effect1_foregroundBlur"/>
+</filter>
+<clipPath id="lfb_clip">
+<rect width="995.095" height="995.095" fill="white"/>
+</clipPath>
+</defs>
+</svg>
