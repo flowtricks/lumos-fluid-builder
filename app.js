@@ -31,7 +31,6 @@
     compare: true, // the graph also draws the other levels, greyed (on unless it was turned off and that was remembered)
     mode: 'type', // the group the list shows: its id ('type' and 'spacing' are the built-in ones, 'other' the rest)
     scaleOff: {}, // by mode and side: a scale was set to None, so its sizes are not read as following one
-    unlocked: {}, // by mode and side: the scale lock is off, so its levels are free of the ratio
     lockCtx: undefined, // the scales that link the other levels to the one being dragged, taken before the drag changes anything
     applied: {}, // by mode and side: the ratio last set, to show it as set when the sizes allow more than one // the ratio last set for each side, to show it as set when sizes allow more than one
     note: undefined, // why the selected element has no fluid size, shown while the card falls back to a level
@@ -896,10 +895,11 @@
       input.disabled = !app.canEdit; // not while writing: a disabled field loses the keyboard focus
       input.setAttribute('aria-label', `${side === 'min' ? 'Minimum' : 'Maximum'} ${scaleWord()} scale`);
       const lock = document.querySelector(`.scale-lock[data-side="${side}"]`);
-      lock.hidden = !found; // a lock means something only while the sizes follow a scale
-      lock.setAttribute('aria-pressed', String(!app.unlocked[sk(side)]));
+      // Always there: a blue lock while a scale is set, a grey open one while it is None.
       const word = side === 'min' ? 'minimum' : 'maximum';
-      lock.title = app.unlocked[sk(side)] ? `Unlocked: the ${word} sizes are free. Lock them to the scale.` : `Locked: the other ${word} sizes follow the smallest. Unlock to set them freely.`;
+      lock.hidden = false;
+      lock.setAttribute('aria-pressed', String(Boolean(found)));
+      lock.title = found ? `Locked: the other ${word} sizes follow the smallest. Click to set the ratio to None and free them.` : `Click to lock the ${word} sizes to a scale ratio.`;
       lock.setAttribute('aria-label', lock.title);
     }
   };
@@ -911,7 +911,8 @@
   // changes all of them. Turning the lock off frees them. The lock only means something while the sizes
   // do follow a scale; with none, every size is free whatever the lock says.
 
-  const scaleLocked = (side) => !app.unlocked[sk(side)] && Boolean(scaleOf(side));
+  /** A scale that is set locks its levels to it; the lock comes off by setting the ratio to None, which clicking the lock does. */
+  const scaleLocked = (side) => Boolean(scaleOf(side));
 
   /**
    * What links the other levels to the one at `key`, per locked side where `key` is the smallest: the ratio, the
@@ -1223,7 +1224,7 @@
       `<li role="option" data-none aria-selected="${!found}"><span class="scale-ratio">None</span></li>` +
       SC.SCALES.map(
         (s) => `<li role="option" data-ratio="${s.ratio}" aria-selected="${named && found.ratio === s.ratio}"><span class="scale-ratio">${SC.format(s.ratio)}</span><span class="scale-title">${esc(s.name)}</span></li>`,
-      ).join('') + `<li role="option" data-custom aria-selected="${Boolean(found && !named)}"><span class="scale-ratio">Custom</span></li>`;
+      ).join('');
     list.hidden = false;
     box.querySelector('.scale-menu').setAttribute('aria-expanded', 'true');
     const current = list.querySelector('[aria-selected="true"]');
@@ -1271,10 +1272,6 @@
           renderScaleFields();
           post(); // the card's sliders are free of the scale
         });
-      } else if (item.hasAttribute('data-custom')) {
-        closeScaleLists(); // nothing chosen yet: what was previewed goes back
-        input.focus();
-        input.select();
       } else {
         closeScaleLists(true);
         keepScalePreview().then(() => applyScale(side, Number(item.dataset.ratio)));
@@ -1293,14 +1290,29 @@
       queueScalePreview(side, Number(item.dataset.ratio));
     });
   }
+  /** What locking a side to a scale starts from: a gentle one for the minimums, a bolder one for the maximums. */
+  const DEFAULT_RATIO = { min: 1.067, max: 1.25 };
+
+  // The lock is the switch for the ratio. Locked, clicking it sets the ratio to None: the sizes stay as they are and are
+  // free of the scale. Unlocked, it locks to the default ratio for that side.
   for (const lock of document.querySelectorAll('.scale-lock')) {
     lock.addEventListener('click', () => {
       const side = lock.dataset.side;
-      app.unlocked[sk(side)] = !app.unlocked[sk(side)];
-      stacki.storage.set({ key: `unlock-${app.mode}-${side}`, value: String(app.unlocked[sk(side)]), scope: 'local' }).catch(() => {});
-      app.lockCtx = undefined;
-      renderScaleFields();
-      post(); // the card's sliders lock or free with it
+      closeScaleLists(true);
+      keepScalePreview().then(() => {
+        if (scaleOf(side)) {
+          setScaleOff(side, true);
+          app.applied[sk(side)] = undefined;
+          delete $(`scale-${side}`).dataset.dirty;
+          app.lockCtx = undefined;
+          renderScaleFields();
+          post(); // the card's sliders are free of the scale
+          return;
+        }
+        if (!app.canEdit) return;
+        app.lockCtx = undefined;
+        applyScale(side, DEFAULT_RATIO[side]);
+      });
     });
   }
   document.addEventListener('click', (event) => {
@@ -1922,7 +1934,7 @@
     const [compare, mode, snapshot, settings, ...flags] = await Promise.all([
       get('compare'), get('mode'), get('snapshot'), loadConfig(),
       // The type scale's settings were kept before there was a spacing scale, under shorter keys.
-      ...modes.flatMap((m) => sides.flatMap((side) => [get(`unlock-${m}-${side}`), get(`scale-off-${m}-${side}`), get(`unlock-${side}`), get(`scale-off-${side}`)])),
+      ...modes.flatMap((m) => sides.flatMap((side) => [get(`scale-off-${m}-${side}`), get(`scale-off-${side}`)])),
     ]);
     app.compare = !(compare && compare.value === 'false'); // on by default; only an explicit off is remembered
     readConfig(settings);
@@ -1930,10 +1942,8 @@
     let i = 0;
     for (const m of modes) {
       for (const side of sides) {
-        const [unlock, off, oldUnlock, oldOff] = flags.slice(i, i + 4);
-        i += 4;
-        const kept = unlock && unlock.value !== undefined ? unlock : m === 'type' ? oldUnlock : {};
-        app.unlocked[`${m}-${side}`] = Boolean(kept && kept.value === 'true');
+        const [off, oldOff] = flags.slice(i, i + 2);
+        i += 2;
         const keptOff = off && off.value !== undefined ? off : m === 'type' ? oldOff : {};
         app.scaleOff[`${m}-${side}`] = Boolean(keptOff && keptOff.value === 'true');
       }
@@ -1964,13 +1974,12 @@
     // The settings of groups the project added: read after the first paint.
     const extra = allGroups().map((g) => g.id).filter((id) => id !== 'type' && id !== 'spacing');
     if (extra.length) {
-      const more = await Promise.all(extra.flatMap((id) => sides.flatMap((side) => [get(`unlock-${id}-${side}`), get(`scale-off-${id}-${side}`)])));
+      const more = await Promise.all(extra.flatMap((id) => sides.map((side) => get(`scale-off-${id}-${side}`))));
       let j = 0;
       for (const id of extra) {
         for (const side of sides) {
-          app.unlocked[`${id}-${side}`] = Boolean(more[j].value === 'true');
-          app.scaleOff[`${id}-${side}`] = Boolean(more[j + 1].value === 'true');
-          j += 2;
+          app.scaleOff[`${id}-${side}`] = Boolean(more[j].value === 'true');
+          j += 1;
         }
       }
       renderScaleFields();

@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "lumos-fluid-builder",
   "name": "Lumos Fluid Builder",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Pick any text on the page, or a level of the type scale, and drag sliders to set its fluid minimum and maximum font size. Previews live on the page, shows Stacki's accessibility warning, and writes the min and max variables.",
   "author": {
     "github": "flowtricks"

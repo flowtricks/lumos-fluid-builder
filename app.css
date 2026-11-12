@@ -470,14 +470,6 @@ h2 {
   color: var(--stacki-text-faint);
 }
 
-.scale-list li[data-custom] {
-  grid-template-columns: auto;
-  margin-top: 2px;
-  border-top: 1px solid var(--stacki-line);
-  border-radius: 0 0 5px 5px;
-  padding-top: 5px;
-}
-
 /* The lock beside a scale: on, the smallest size sets the others through the ratio; off, every size is free. */
 .scale-head {
   display: flex;
@@ -527,19 +519,16 @@ h2 {
   color: var(--stacki-text-faint);
 }
 
+/* Locked: the accent blue itself, on a soft blue background, so it reads as on. */
 .scale-lock:hover {
   background: color-mix(in srgb, var(--stacki-text) 9%, transparent);
 }
 
-/* Locked: the accent blue itself, on a soft blue background, so it reads as on. */
 .scale-lock[aria-pressed='true'] {
   color: var(--stacki-accent, #3b82f6);
   background: var(--stacki-accent-soft, rgba(59, 130, 246, 0.2));
 }
 
-.scale-lock[aria-pressed='true']:hover {
-  background: color-mix(in srgb, var(--stacki-accent-soft, rgba(59, 130, 246, 0.2)) 80%, var(--stacki-accent, #3b82f6));
-}
 
 /* None sits first, set apart from the scales. */
 .scale-list li[data-none] {
@@ -571,14 +560,19 @@ h2 {
   outline: none;
 }
 
-/* No background on hover, press or focus, whatever the kit gives a button. */
-.mode-menu:hover,
-.mode-menu:focus,
-.mode-menu:focus-visible,
-.mode-menu:active {
-  background: transparent;
-  box-shadow: none;
-  outline: none;
+/* No background on hover, press, focus or while open, whatever the kit gives a button. */
+.stacki-ui .mode-menu,
+.stacki-ui .mode-menu:hover,
+.stacki-ui .mode-menu:focus,
+.stacki-ui .mode-menu:focus-visible,
+.stacki-ui .mode-menu:active,
+.stacki-ui .mode-menu[aria-expanded='true'] {
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .mode-menu svg {
